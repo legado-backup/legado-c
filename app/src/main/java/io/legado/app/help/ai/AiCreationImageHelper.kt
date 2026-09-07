@@ -27,10 +27,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import okhttp3.OkHttpClient
 import splitties.init.appCtx
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 object AiCreationImageFile {
@@ -313,6 +315,18 @@ object AiCreationImageTaskHolder {
     private const val IMAGE_CONCURRENCY = 3
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    //生图是分钟级任务（Local Dream 真机实测一张 156 秒，本地 CPU 跑 SDXL 更久），
+    //全局 client 的 callTimeout=60s 会把长生成掐断；这里派生不限总时长的 client 共用连接池，
+    //失败兜底靠任务取消，不用超时丢请求
+    private val imageGenerationClient: OkHttpClient by lazy {
+        okHttpClient.newBuilder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(0, TimeUnit.MILLISECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(0, TimeUnit.MILLISECONDS)
+            .build()
+    }
 
     /**
      * 一次生图请求一个任务。展示权唯一归属最新任务（以新的为准）：
@@ -734,7 +748,7 @@ object AiCreationImageTaskHolder {
         workflow: AiCreationWorkflow? = null,
         onProgress: ((step: Int, totalSteps: Int) -> Unit)? = null
     ): List<String> = withContext(Dispatchers.IO) {
-        val response = okHttpClient.newCallResponse {
+        val response = imageGenerationClient.newCallResponse {
             url(provider.baseUrl)
             addHeader("Accept", "application/json")
             addHeader("Content-Type", "application/json")
