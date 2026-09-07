@@ -303,6 +303,6 @@ AI 铁律（死路，见到先复述给用户再定夺）：模型永远只当�
 
 仅保留最近一次已交付版本，下一次覆盖安装必须在此基础上递增：
 
-- 最近一次自用版交付为 `3.26.090703c` / `10869`，2026-09-07，基于提交 `5d367a3d`（生图请求改用不限时长超时：分钟级长生成被全局 60 秒 callTimeout 掐断；Local Dream 受控协议真机全链路已实测：/models、/select 拉起、/status、/generate SSE 12 步 156 秒出图；MIUI 需对 Local Dream 开"无限制后台+自启动"否则进程被 cgroup freezer 冻结、控制口全部超时）使用 `assembleAppC` daemon 编译成功（`BUILD SUCCESSFUL in 34s`，`75 actionable tasks: 13 executed, 62 up-to-date`）。产物包名 `io.legado.app.dev`、versionName `3.26.090703c`、versionCode `10869`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label-zh 逐字匹配）、`apksigner verify` 退出码 0；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090703_10869.apk`，已无线 ADB（10.135.114.244:36681）覆盖安装 Success。
+- 最近一次自用版交付为 `3.26.090703c` / `10870`，2026-09-07，基于提交 `03a5cca1`（含 Local Dream 受控协议全量提交与生图不限时长超时修复、在线评论页快照身份修复）使用 `assembleAppC` daemon 编译成功（`BUILD SUCCESSFUL in 29s`，`75 actionable tasks: 13 executed, 62 up-to-date`）。产物包名 `io.legado.app.dev`、versionName `3.26.090703c`、versionCode `10870`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label-zh 逐字匹配）、`apksigner verify` 退出码 0；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090703_10870.apk`，已无线 ADB（10.135.114.244:36681）覆盖安装 Success。Local Dream 真机约束：MIUI 必须对 Local Dream 开"无限制后台+自启动"，否则进程被 cgroup freezer 冻结、控制口 8808 全部超时。
 
 每次交付后当场更新本节。历史发布信息应从 Git、GitHub Release 或提交记录查询，不在本文件累积。
