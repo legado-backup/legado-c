@@ -83,9 +83,9 @@ object AiCreationProviderStore {
         """{"model":"{{model}}","prompt":"{{prompt}}","quality":"{{video_quality}}","with_audio":{{video_with_audio}},"size":"{{video_size}}","fps":{{video_fps}},"duration":{{video_duration}},"watermark_enabled":{{watermark_enabled}},"request_id":"{{request_id}}","image_url":{{image_url}}}"""
 
     //Local Dream 本地后端：无鉴权、无模型字段（模型由后端启动时选定）、SSE 响应；
-    //output_format 固定 png 保证落盘可预览，image 字段空值时由渲染引擎整段省略（纯文生图）
+    //output_format 固定 png 保证落盘可预览，image/aspect_ratio 空值时由渲染引擎整段省略（纯文生图方图）
     const val LOCALDREAM_IMAGE_REQUEST_TEMPLATE =
-        """{"prompt":"{{prompt}}","negative_prompt":"{{negative_prompt}}","steps":{{steps}},"cfg":{{cfg}},"scheduler":"{{scheduler}}","seed":{{seed}},"width":{{width}},"height":{{height}},"image":"{{image_b64}}","output_format":"png"}"""
+        """{"prompt":"{{prompt}}","negative_prompt":"{{negative_prompt}}","steps":{{steps}},"cfg":{{cfg}},"scheduler":"{{scheduler}}","seed":{{seed}},"width":{{width}},"height":{{height}},"aspect_ratio":"{{aspect_ratio}}","denoise_strength":{{denoise_strength}},"use_opencl":{{use_opencl}},"image":"{{image_b64}}","output_format":"png"}"""
 
     // ———————— 图片供应商 ————————
 

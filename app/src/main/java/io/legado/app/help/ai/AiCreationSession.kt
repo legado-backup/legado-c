@@ -298,13 +298,63 @@ object AiCreationVariables {
         defaultValue = "7.5",
     )
 
+    //重绘幅度只在图生图生效（文生图后端忽略或按 1.0 处理）
+    private val localDreamDenoiseVariable = AiCreationVariable(
+        key = "denoise_strength",
+        label = "重绘幅度",
+        format = AiCreationVariable.FORMAT_INPUT,
+        defaultValue = "0.6",
+    )
+
+    //画面比例仅 SDXL/Anima 后端生效（1024 固定画布裁剪出非方图），SD1.5 后端忽略此字段；
+    //默认空值=不发字段（渲染引擎空即省略），按后端默认方图处理
+    private val localDreamAspectRatioVariable = AiCreationVariable(
+        key = "aspect_ratio",
+        label = "画面比例",
+        format = AiCreationVariable.FORMAT_OPTIONS,
+        options = listOf(
+            "方图（后端默认）",
+            "3:2（横）",
+            "2:3（竖）",
+            "4:3（横）",
+            "3:4（竖）",
+            "16:9（横）",
+            "9:16（竖）",
+            "21:9（横）"
+        ),
+        values = listOf(
+            "",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9"
+        ),
+        defaultValue = "",
+    )
+
+    //OpenCL 加速仅 MNN CPU 后端（部分模型）有效，QNN/NPU 后端忽略
+    private val localDreamOpenClVariable = AiCreationVariable(
+        key = "use_opencl",
+        label = "OpenCL 加速",
+        format = AiCreationVariable.FORMAT_SWITCH,
+        defaultValue = "false",
+        onValue = "true",
+        offValue = "false",
+    )
+
     /** Local Dream 生图参数变量（style 属于 LLM 变量设置，不在此列） */
     val localDreamImageVariables = listOf(
         localDreamSchedulerVariable,
+        localDreamAspectRatioVariable,
         localDreamWidthVariable,
         localDreamHeightVariable,
         localDreamStepsVariable,
         localDreamCfgVariable,
+        localDreamDenoiseVariable,
+        localDreamOpenClVariable,
         kolorsNegativePromptVariable,
         kolorsSeedVariable
     )
