@@ -152,6 +152,8 @@ object BookImgClick {
                         buttonSrc = cached.snapshot.buttonSrc.ifBlank { null },
                         pageUrl = cached.snapshot.url,
                     ),
+                    // 内容来自 ReviewSnapshotStore 的快照：身份为离线，允许离线接管
+                    isSnapshotHtml = true,
                 )
             )
         }

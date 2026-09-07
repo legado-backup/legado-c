@@ -130,7 +130,17 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
     private var reviewResourceBook: Book? = null
 
     /**
-     * 当前 WebView 显示的是否为评论快照内容（初始快照或网络失败后的兜底快照）。
+     * 当前 WebView 显示的是否为评论快照内容。
+     *
+     * 身份定义（越权禁令）：
+     * - 快照内容 = 唯一来源 [io.legado.app.help.review.ReviewSnapshotStore]，
+     *   抓取端已剥离 script、冻结 DOM、资源 review-resource 化，身份为离线；
+     *   仅它允许离线接管（资源拦截、章评/书评补充注入、楼中楼收展）。
+     * - 在线内容 = showBrowser/网络带回的活页 HTML（脚本存活、评论靠 AJAX），
+     *   身份为在线；禁止一切离线接管。
+     * 该标记只能由构造时的内容来源决定（[isSnapshotHtml]），以及快照兜底/
+     * 在线覆盖两处明确的状态切换修改；禁止再用“html 是否非空”推断身份，
+     * 否则 showBrowser 活页会被误标为快照（离线注入器越权接管在线页）。
      * 仅此时注入章评/书评补充 section；在线页自身的 tab 可用，无需注入。
      */
     @Volatile
@@ -157,6 +167,7 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
         reviewResourceBook: Book? = null,
         outboxContext: io.legado.app.help.review.reviewoutbox.ReviewOutboxContext? = null,
         syntheticParaContent: io.legado.app.help.review.SyntheticParaContent? = null,
+        isSnapshotHtml: Boolean = false,
     ) : this() {
         this.networkRefresher = networkRefresher
         this.fallbackHtml = fallbackHtml
@@ -176,6 +187,7 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
             putString(ARG_FALLBACK_HTML_FILE, fallbackHtmlFileReference)
             putString("preloadJs", preloadJs)
             putString("config", config)
+            putBoolean(ARG_IS_SNAPSHOT_HTML, isSnapshotHtml)
             putParcelable(ARG_REVIEW_RESOURCE_BOOK, reviewResourceBook)
             outboxContext?.putTo(this)
             syntheticParaContent?.putTo(this)
@@ -225,6 +237,11 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
             htmlFileReference = WebViewHtmlStore.write(legacyHtml)
             arguments?.putString(ARG_HTML_FILE, htmlFileReference)
             arguments?.remove(ARG_LEGACY_HTML)
+            // 旧版本无来源标记，按旧推断（html 非空即快照）保留，避免已存在的
+            // 快照对话框在升级恢复后丢失补充注入；新构造一律显式传参。
+            if (arguments?.containsKey(ARG_IS_SNAPSHOT_HTML) != true) {
+                arguments?.putBoolean(ARG_IS_SNAPSHOT_HTML, true)
+            }
         }
         reviewResourceBook = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable(ARG_REVIEW_RESOURCE_BOOK, Book::class.java)
@@ -617,7 +634,9 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
                         ?: throw NoStackTraceException("WebView HTML file is missing: $reference")
                 }
                 if (htmlArgument != null) {
-                    displayingSnapshotHtml = true
+                    // 身份只认构造时传入的来源标记，不再用 html 是否非空推断：
+                    // showBrowser 活页 html 同样非空，但身份是在线，禁止离线接管。
+                    displayingSnapshotHtml = args.getBoolean(ARG_IS_SNAPSHOT_HTML, false)
                 }
                 val fallbackReference = args.getString(ARG_FALLBACK_HTML_FILE)
                 if (fallbackReference != null) {
@@ -658,8 +677,10 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
                         }
                     }.getOrElse { e ->
                         fallbackHtml?.takeIf { it.isNotBlank() }?.also {
-                            // 已用快照兜底：进入离线模式，不再允许任何网络请求
+                            // 已用快照兜底：进入离线模式，不再允许任何网络请求；
+                            // 内容即快照，身份同步置为快照（同一权责的另一面）。
                             offlineMode = true
+                            displayingSnapshotHtml = true
                         } ?: throw e
                     }
                 }
@@ -853,6 +874,7 @@ class BottomWebViewDialog() : BottomSheetDialogFragment(R.layout.dialog_web_view
         const val ARG_FALLBACK_HTML_FILE = "fallbackHtmlFile"
         const val ARG_LEGACY_HTML = "html"
         const val ARG_REVIEW_RESOURCE_BOOK = "reviewResourceBook"
+        const val ARG_IS_SNAPSHOT_HTML = "isSnapshotHtml"
     }
 
     private fun saveImage(webPic: String) {
