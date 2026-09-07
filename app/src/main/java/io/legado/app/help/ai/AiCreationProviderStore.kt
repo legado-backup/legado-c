@@ -595,13 +595,8 @@ object AiCreationProviderStore {
             id = "builtin-img-model-cogview3flash",
             providerId = IMAGE_ZHIPU_ID,
             modelId = "cogview-3-flash"
-        ),
-        AiCreationProviderModel(
-            id = "builtin-img-model-localdream",
-            providerId = IMAGE_LOCALDREAM_ID,
-            //本地后端没有模型查询接口：实际模型与参数由 Local Dream 启动后端时选定，此条仅作界面占位
-            modelId = "local-dream"
         )
+        //Local Dream 不设占位模型：模型目录由受控端口 8808 /models 拉取（添加模型→从接口列表选择）
     )
 
     private fun builtinVideoProviders(): List<AiCreationProviderConfig> = listOf(

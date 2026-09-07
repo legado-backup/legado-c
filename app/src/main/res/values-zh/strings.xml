@@ -509,6 +509,7 @@
     <string name="ai_creation_workflow_copied">工作流已复制</string>
     <string name="ai_creation_provider_builtin">内置供应商不可删除</string>
     <string name="ai_creation_provider_required">请先在管理供应商中设为当前供应商</string>
+    <string name="ai_creation_fetch_models_unsupported">当前供应商不支持从接口拉取模型</string>
     <string name="ai_creation_model_required">请先为当前供应商添加模型</string>
     <string name="ai_creation_current_provider_empty">未设当前供应商</string>
     <string name="ai_creation_current_model_empty">未设当前模型</string>

@@ -577,7 +577,8 @@ object AiCreationImageTaskHolder {
                 llmImages = llmImages, llmOutput = llmOutput,
                 onProgress = { step, totalSteps ->
                     if (totalSteps > 0) postNotice(task, "本地生成中：第 $step/$totalSteps 步")
-                }
+                },
+                onStatus = { message -> postNotice(task, message) }
             )
         }
         var completed = 0
@@ -660,9 +661,20 @@ object AiCreationImageTaskHolder {
         imageDataUrls: List<String> = emptyList(),
         llmImages: List<String> = emptyList(),
         llmOutput: String = "",
-        onProgress: ((step: Int, totalSteps: Int) -> Unit)? = null
+        onProgress: ((step: Int, totalSteps: Int) -> Unit)? = null,
+        onStatus: (String) -> Unit = {}
     ): List<String> {
         val retry = AiCreationConfig.imageRetryCount
+        //Local Dream 生成端口（8081）只有模型拉起后才存在：生成前按（模型，宽，高）确保后端就绪
+        if (target.provider.id == AiCreationProviderStore.IMAGE_LOCALDREAM_ID) {
+            AiCreationLocalDream.ensureBackendRunning(
+                provider = target.provider,
+                modelId = target.modelId,
+                width = extraValues["width"]?.trim()?.toIntOrNull() ?: 512,
+                height = extraValues["height"]?.trim()?.toIntOrNull() ?: 512,
+                onStatus = onStatus
+            )
+        }
         //种子空着=每次随机：模板下不了"省略字段"，空串发过去会被打回来，所以这里填真随机数
         val resolvedSeed = extraValues["seed"]?.takeIf { it.isNotBlank() }
             ?: kotlin.random.Random.nextLong(0, 10_000_000_000L).toString()
@@ -925,6 +937,17 @@ object AiCreationImageTaskHolder {
     ): String = withContext(Dispatchers.IO) {
         check(provider.requestTemplate.isNotBlank()) { "当前图片供应商「${provider.name}」的图片请求模板为空" }
         val variables = AiCreationProviderStore.parsedVariables(provider, isVideo = false)
+        //Local Dream：测试连接同样先按（模型，默认宽高）拉起后端
+        if (provider.id == AiCreationProviderStore.IMAGE_LOCALDREAM_ID) {
+            AiCreationLocalDream.ensureBackendRunning(
+                provider = provider,
+                modelId = modelId,
+                width = variables.firstOrNull { it.key == "width" }
+                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 512,
+                height = variables.firstOrNull { it.key == "height" }
+                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 512
+            )
+        }
         val tokens = buildMap {
             put("model", modelId)
             put("prompt", AiCreationProviderStore.IMAGE_TEST_PROMPT)

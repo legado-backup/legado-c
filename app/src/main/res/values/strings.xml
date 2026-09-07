@@ -510,6 +510,7 @@
     <string name="ai_creation_workflow_copied">Workflow copied</string>
     <string name="ai_creation_provider_builtin">Built-in provider cannot be removed</string>
     <string name="ai_creation_provider_required">Set a current provider in Manage Providers first</string>
+    <string name="ai_creation_fetch_models_unsupported">This provider does not support fetching models from its API</string>
     <string name="ai_creation_model_required">Add a model for the current provider first</string>
     <string name="ai_creation_current_provider_empty">No current provider</string>
     <string name="ai_creation_current_model_empty">No current model</string>

@@ -23,6 +23,7 @@ import io.legado.app.help.ai.AiStoryboardConfig
 import io.legado.app.help.ai.AiChatService
 import io.legado.app.help.ai.AiCreationConfig
 import io.legado.app.help.ai.AiCreationImageTaskHolder
+import io.legado.app.help.ai.AiCreationLocalDream
 import io.legado.app.help.ai.AiCreationProviderConfig
 import io.legado.app.help.ai.AiCreationProviderModel
 import io.legado.app.help.ai.AiCreationProviderStore
@@ -791,6 +792,100 @@ class AiConfigFragment : PreferenceFragment(),
             toastOnUi(R.string.ai_creation_provider_required)
             return
         }
+        context?.selector(
+            getString(
+                if (isVideo) R.string.ai_creation_video_add_model
+                else R.string.ai_creation_image_add_model
+            ),
+            listOf(
+                getString(R.string.ai_add_model_from_list),
+                getString(R.string.ai_add_model_manual)
+            )
+        ) { _, _, index ->
+            when (index) {
+                0 -> fetchCreationModelsFromProvider(provider, isVideo)
+                1 -> showCreationEditAddModelDialog(provider, isVideo)
+            }
+        }
+    }
+
+    private fun fetchCreationModelsFromProvider(
+        provider: AiCreationProviderConfig,
+        isVideo: Boolean
+    ) {
+        toastOnUi(R.string.ai_fetch_models_loading)
+        lifecycleScope.launch {
+            val result = withContext(IO) {
+                runCatching {
+                    when (provider.id) {
+                        AiCreationProviderStore.IMAGE_LOCALDREAM_ID ->
+                            AiCreationLocalDream.fetchModels(provider)
+                                .map { "${it.name}（${it.id}）" to it.id }
+                        else -> throw IllegalStateException(
+                            getString(R.string.ai_creation_fetch_models_unsupported)
+                        )
+                    }
+                }
+            }
+            result.onSuccess { entries ->
+                if (entries.isEmpty()) {
+                    toastOnUi(R.string.ai_fetch_models_empty)
+                    return@onSuccess
+                }
+                showCreationFetchedModelSelector(provider, isVideo, entries)
+            }.onFailure {
+                toastOnUi(getString(R.string.ai_fetch_models_failed, it.localizedMessage ?: "未知错误"))
+            }
+        }
+    }
+
+    /** 接口拉取结果选择器：首项“全部添加”，单项显示 name（id），落库存 modelId=id */
+    private fun showCreationFetchedModelSelector(
+        provider: AiCreationProviderConfig,
+        isVideo: Boolean,
+        entries: List<Pair<String, String>>
+    ) {
+        val items = buildList {
+            add(getString(R.string.ai_add_all_models))
+            addAll(entries.map { it.first })
+        }
+        context?.selector(
+            getString(R.string.ai_add_model_from_list),
+            items
+        ) { _, _, index ->
+            val toAdd = when (index) {
+                0 -> entries.map { it.second }
+                else -> listOf(entries[index - 1].second)
+            }
+            val models = creationModels(isVideo).toMutableList()
+            var added = 0
+            toAdd.forEach { modelId ->
+                if (models.none { it.providerId == provider.id && it.modelId == modelId }) {
+                    val model = AiCreationProviderModel(providerId = provider.id, modelId = modelId)
+                    models.add(model)
+                    added++
+                    setCreationCurrentModelRowId(isVideo, model.id)
+                } else if (index != 0) {
+                    //单项点击已存在时直接设为当前
+                    models.firstOrNull { it.providerId == provider.id && it.modelId == modelId }
+                        ?.let { setCreationCurrentModelRowId(isVideo, it.id) }
+                }
+            }
+            if (added > 0) {
+                saveCreationModels(isVideo, models)
+                refreshUi()
+            }
+            toastOnUi(
+                if (added > 0) getString(R.string.ai_fetch_models_success, added)
+                else getString(R.string.ai_fetch_models_no_new)
+            )
+        }
+    }
+
+    private fun showCreationEditAddModelDialog(
+        provider: AiCreationProviderConfig,
+        isVideo: Boolean
+    ) {
         val binding = DialogEditTextBinding.inflate(layoutInflater).apply {
             editView.hint = getString(R.string.ai_model_input_hint)
             editView.inputType = InputType.TYPE_CLASS_TEXT
