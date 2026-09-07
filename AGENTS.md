@@ -303,6 +303,6 @@ AI 铁律（死路，见到先复述给用户再定夺）：模型永远只当�
 
 仅保留最近一次已交付版本，下一次覆盖安装必须在此基础上递增：
 
-- 最近一次自用版交付为 `3.26.090700` / `10865`，2026-09-07，基于提交 `26124788`（用量卡新增上下文行、Agent存储编译修复与旧数据版本门销毁、AI对话导出全事件流式写入、AGENTS工程细则整理）使用 `assembleAppC` daemon 增量编译成功（`BUILD SUCCESSFUL in 38s`，`75 actionable tasks: 13 executed, 62 up-to-date`）。产物包名 `io.legado.app.dev`、versionName `3.26.090700c`、versionCode `10865`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090700_10865.apk`（50000858 字节）。
+- 最近一次自用版交付为 `3.26.090701` / `10866`，2026-09-07，基于提交 `1a8b9e0a`（AI 创作接入 Local Dream 本地画图、Local Dream 参数补全、总计卡首行英文格式、清理遗留编译日志）使用 `assembleAppC` daemon 增量编译成功（`BUILD SUCCESSFUL in 2m 26s`，`75 actionable tasks: 8 executed, 67 up-to-date`）。产物包名 `io.legado.app.dev`、versionName `3.26.090701c`、versionCode `10866`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090701_10866.apk`（50008047 字节）。首次编译曾失败，根因是编译窗口与并行会话提交 `1a8b9e0a` 竞态读到中间状态，基于新分支头重编即通过；教训：正式编译若遇大量与"刚被并行会话修改文件"重合的 Unresolved reference，先核对 HEAD 是否已前进再定位。
 
 每次交付后当场更新本节。历史发布信息应从 Git、GitHub Release 或提交记录查询，不在本文件累积。
