@@ -266,36 +266,37 @@ object AiCreationVariables {
             "dpm_sde_karras",
             "lcm"
         ),
-        defaultValue = "dpm",
+        defaultValue = "euler",
     )
 
-    //Local Dream 本地后端参数：SD1.5 常用 512，SDXL/Anima 后端强制 1024 画布（宽高传值会被忽略）
+    //Local Dream 本地后端参数：默认值取自 Anima NPU 模型（/models defaults + 真机实测）：
+    //模型 generation_size=1024，文生图引擎固定出 1024 方图；图生图按请求宽高跑（输入图须等尺寸）
     private val localDreamWidthVariable = AiCreationVariable(
         key = "width",
         label = "宽",
         format = AiCreationVariable.FORMAT_INPUT,
-        defaultValue = "512",
+        defaultValue = "1024",
     )
 
     private val localDreamHeightVariable = AiCreationVariable(
         key = "height",
         label = "高",
         format = AiCreationVariable.FORMAT_INPUT,
-        defaultValue = "512",
+        defaultValue = "1024",
     )
 
     private val localDreamStepsVariable = AiCreationVariable(
         key = "steps",
         label = "推理步数",
         format = AiCreationVariable.FORMAT_INPUT,
-        defaultValue = "20",
+        defaultValue = "10",
     )
 
     private val localDreamCfgVariable = AiCreationVariable(
         key = "cfg",
         label = "引导系数",
         format = AiCreationVariable.FORMAT_INPUT,
-        defaultValue = "7.5",
+        defaultValue = "1",
     )
 
     //重绘幅度只在图生图生效（文生图后端忽略或按 1.0 处理）

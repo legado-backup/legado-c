@@ -3,6 +3,7 @@ package io.legado.app.help.ai
 import android.util.Base64
 import android.content.ContentValues
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -34,6 +35,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.roundToInt
 
 object AiCreationImageFile {
 
@@ -684,8 +686,8 @@ object AiCreationImageTaskHolder {
             AiCreationLocalDream.ensureBackendRunning(
                 provider = target.provider,
                 modelId = target.modelId,
-                width = extraValues["width"]?.trim()?.toIntOrNull() ?: 512,
-                height = extraValues["height"]?.trim()?.toIntOrNull() ?: 512,
+                width = extraValues["width"]?.trim()?.toIntOrNull() ?: 1024,
+                height = extraValues["height"]?.trim()?.toIntOrNull() ?: 1024,
                 onStatus = onStatus
             )
         }
@@ -933,12 +935,57 @@ object AiCreationImageTaskHolder {
             put("image2", imageDataUrls.getOrElse(1) { "" })
             put("image3", imageDataUrls.getOrElse(2) { "" })
             //Local Dream 等本地协议要纯 base64（无 data URL 前缀）；空串时整段字段被渲染引擎省略
-            put("image_b64", imageDataUrls.getOrElse(0) { "" }.substringAfterLast(","))
+            put(
+                "image_b64",
+                imageDataUrls.getOrElse(0) { "" }
+                    .takeIf { it.isNotBlank() }
+                    ?.let { dataUrl ->
+                        if (target.provider.id == AiCreationProviderStore.IMAGE_LOCALDREAM_ID) {
+                            localDreamInputImageBase64(dataUrl, extraValues)
+                        } else {
+                            dataUrl.substringAfterLast(",")
+                        }
+                    }
+                    .orEmpty()
+            )
             putAll(extraValues)
             //种子后放：用户填了用填的，没填用本次随机数；旧模板没这个位置则忽略
             if (resolvedSeed.isNotBlank()) put("seed", resolvedSeed)
         }
         return AiCreationProviderStore.renderRequestTemplate(target.provider.requestTemplate, tokens)
+    }
+
+    //Local Dream 图生图：引擎要求输入图与请求宽高完全一致（真机实测不等尺寸报 Img size mismatch），
+    //按官方遥控端同款策略处理：中心裁剪到目标宽高比，缩放到 (width,height)，PNG 编码
+    private fun localDreamInputImageBase64(dataUrl: String, extraValues: Map<String, String>): String {
+        val width = extraValues["width"]?.trim()?.toIntOrNull() ?: 1024
+        val height = extraValues["height"]?.trim()?.toIntOrNull() ?: 1024
+        val rawBase64 = dataUrl.substringAfterLast(",")
+        val source = BitmapFactory.decodeByteArray(Base64.decode(rawBase64, Base64.DEFAULT), 0, -1)
+            ?: return rawBase64
+        val cropped = centerCropScale(source, width, height)
+        val out = ByteArrayOutputStream()
+        cropped.compress(Bitmap.CompressFormat.PNG, 100, out)
+        return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun centerCropScale(source: Bitmap, targetW: Int, targetH: Int): Bitmap {
+        val dstRatio = targetW.toFloat() / targetH
+        val srcRatio = source.width.toFloat() / source.height
+        val cropW: Int
+        val cropH: Int
+        if (srcRatio > dstRatio) {
+            cropH = source.height
+            cropW = (source.height * dstRatio).roundToInt().coerceAtLeast(1)
+        } else {
+            cropW = source.width
+            cropH = (source.width / dstRatio).roundToInt().coerceAtLeast(1)
+        }
+        val cx = (source.width - cropW) / 2
+        val cy = (source.height - cropH) / 2
+        val cropped = Bitmap.createBitmap(source, cx, cy, cropW, cropH)
+        if (cropped.width == targetW && cropped.height == targetH) return cropped
+        return Bitmap.createScaledBitmap(cropped, targetW, targetH, true)
     }
 
     /**
@@ -957,9 +1004,9 @@ object AiCreationImageTaskHolder {
                 provider = provider,
                 modelId = modelId,
                 width = variables.firstOrNull { it.key == "width" }
-                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 512,
+                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 1024,
                 height = variables.firstOrNull { it.key == "height" }
-                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 512
+                    ?.effectiveValue(null)?.trim()?.toIntOrNull() ?: 1024
             )
         }
         val tokens = buildMap {
