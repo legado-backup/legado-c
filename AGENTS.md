@@ -303,6 +303,6 @@ AI 铁律（死路，见到先复述给用户再定夺）：模型永远只当�
 
 仅保留最近一次已交付版本，下一次覆盖安装必须在此基础上递增：
 
-- 最近一次公开版交付为 `3.26.090702` / `10867`，2026-09-07，基于提交 `be4f2883`（可热更新 JS Agent、AI 聊天重构与用量统计、Local Dream 本地画图、README 更新记录与截图）使用 `assembleOssRelease` daemon 编译成功（`BUILD SUCCESSFUL in 4m 56s`，`121 actionable tasks: 32 executed, 1 from cache, 88 up-to-date`）。产物包名 `io.legado.app.c`、versionName `3.26.090702`（无后缀）、versionCode `10867`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C`（label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\oss\release\legado_oss_3.26.090702_10867.apk`（35785097 字节）。已发布 Pre 版 Release：tag `v3.26.090702`、target_commitish `own`、`prerelease=true`、`make_latest=false`（Latest 保持 `v3.26.090522` 不动），资产大小与下载 200 已复查。
+- 最近一次自用版交付为 `3.26.090702c` / `10868`，2026-09-07，基于提交 `28cca564`（Local Dream 接受控协议：接口拉取模型列表、生成前自动拉起后端；含 SSE 流式响应解析、空即省略渲染、图生图 `{{image_b64}}` 与参数补全）使用 `assembleAppC` daemon 编译成功（`BUILD SUCCESSFUL in 59s`，`75 actionable tasks: 7 executed, 68 up-to-date`，import 修复提交后增量复建 75 全 up-to-date）。产物包名 `io.legado.app.dev`、versionName `3.26.090702c`、versionCode `10868`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label 与 label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090702_10868.apk`（50020870 字节）。
 
 每次交付后当场更新本节。历史发布信息应从 Git、GitHub Release 或提交记录查询，不在本文件累积。
