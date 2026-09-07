@@ -303,6 +303,6 @@ AI 铁律（死路，见到先复述给用户再定夺）：模型永远只当�
 
 仅保留最近一次已交付版本，下一次覆盖安装必须在此基础上递增：
 
-- 最近一次自用版交付为 `3.26.090701` / `10866`，2026-09-07，基于提交 `1a8b9e0a`（AI 创作接入 Local Dream 本地画图、Local Dream 参数补全、总计卡首行英文格式、清理遗留编译日志）使用 `assembleAppC` daemon 增量编译成功（`BUILD SUCCESSFUL in 2m 26s`，`75 actionable tasks: 8 executed, 67 up-to-date`）。产物包名 `io.legado.app.dev`、versionName `3.26.090701c`、versionCode `10866`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C-自用`（label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\app\c\legado_app_3.26.090701_10866.apk`（50008047 字节）。首次编译曾失败，根因是编译窗口与并行会话提交 `1a8b9e0a` 竞态读到中间状态，基于新分支头重编即通过；教训：正式编译若遇大量与"刚被并行会话修改文件"重合的 Unresolved reference，先核对 HEAD 是否已前进再定位。
+- 最近一次公开版交付为 `3.26.090702` / `10867`，2026-09-07，基于提交 `be4f2883`（可热更新 JS Agent、AI 聊天重构与用量统计、Local Dream 本地画图、README 更新记录与截图）使用 `assembleOssRelease` daemon 编译成功（`BUILD SUCCESSFUL in 4m 56s`，`121 actionable tasks: 32 executed, 1 from cache, 88 up-to-date`）。产物包名 `io.legado.app.c`、versionName `3.26.090702`（无后缀）、versionCode `10867`、架构 `arm64-v8a`，`aapt` 确认应用名 `阅读C`（label-zh 逐字匹配）、`apksigner verify` 退出码 0（`META-INF` 未保护条目提示可接受）；APK 位于 `app\build\outputs\apk\oss\release\legado_oss_3.26.090702_10867.apk`（35785097 字节）。已发布 Pre 版 Release：tag `v3.26.090702`、target_commitish `own`、`prerelease=true`、`make_latest=false`（Latest 保持 `v3.26.090522` 不动），资产大小与下载 200 已复查。
 
 每次交付后当场更新本节。历史发布信息应从 Git、GitHub Release 或提交记录查询，不在本文件累积。
