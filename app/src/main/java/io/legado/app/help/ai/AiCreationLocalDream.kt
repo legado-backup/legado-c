@@ -2,6 +2,7 @@ package io.legado.app.help.ai
 
 import io.legado.app.help.http.newCallResponse
 import io.legado.app.help.http.okHttpClient
+import io.legado.app.help.http.postJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
